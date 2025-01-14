@@ -1201,11 +1201,11 @@ def load_cropped_files(save_dir, files, xysub=65, bgsub=False,
         hdul.close()
 
     # Ensure data are of the same shape
-    sh1 = imsub_arr[0].shape
+    sh1 = imsub_arr[0].shape[-2:]
     xymin_size = np.min([sh1[0], sh1[1]])
     same_shape = True
     for i in range(1, len(imsub_arr)):
-        sh2 = imsub_arr[i].shape
+        sh2 = imsub_arr[i].shape[-2:]
         if sh1 != sh2:
             same_shape = False
         xymin_size = np.min([xymin_size, np.min([sh2[0], sh2[1]])])
