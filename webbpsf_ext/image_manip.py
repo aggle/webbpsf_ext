@@ -36,8 +36,13 @@ def get_im_cen(im):
     Returns pixel position (xcen, ycen) of array center.
     For odd dimensions, this is in a pixel center.
     For even dimensions, this is at the pixel boundary.
+    Assumes image size (ny, nx) is the last two dimensions of array.
     """
-    ny, nx = im.shape
+    if len(im.shape) > 1:
+        ny, nx = im.shape[-2:]
+    else:
+        raise ValueError(f'Image dimension of {len(im.shape)} not valid.')
+    
     return np.array([nx / 2. - 0.5, ny / 2. - 0.5])
 
 def fshift(inarr, delx=0, dely=0, pad=False, cval=0.0, interp='linear', **kwargs):
@@ -2070,6 +2075,13 @@ def image_convolution(image, psf, method='scipy', use_fft=None, **kwargs):
     Can use either scipy or astropy convolution methods. 
     Both should produce the same results.
     """
+
+    if len(image.shape)==3:
+        return np.array([image_convolution(im, psf) for im in image])
+    elif len(image.shape)==2:
+        pass
+    elif len(image.shape)>3:
+        raise ValueError(f"Input image must have 2 or 3 dimensions. ndim={len(image.shape)}")
 
     from scipy.signal import choose_conv_method
     if use_fft is None:
