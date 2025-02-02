@@ -203,6 +203,13 @@ def build_mask_detid(detid, oversample=1, ref_mask=None, pupil=None, filter=None
     pupil : str or None
         Which Lyot pupil stop is being used? This affects holder placement.
         If None, then defaults based on ref_mask.
+    filter : str
+        NIRCam filter name. This is used to apply the correct throughput
+        values for the coronagraphic mask region and ND squares.
+    nd_squares : bool
+        Include ND squares in the mask image?
+    mask_holder : bool
+        Include the coronagraphic mask holder in the mask image?
     """
 
     from .image_manip import pad_or_cut_to_size
@@ -293,9 +300,17 @@ def build_mask_detid(detid, oversample=1, ref_mask=None, pupil=None, filter=None
         com_th = nircam_com_th(wave_out=w_um)
         com_nd = 10**(-1*nircam_com_nd(wave_out=w_um))
 
-        ind_nd = (cmask<0.0011) & (cmask>0.0009)
-        cmask[ind_nd] = com_nd
+        # Get ND square locations
+        if nd_squares:
+            ndval = 0.001
+            ind_nd = (cmask<ndval*1.01) & (cmask>ndval*0.99)
+            ind_nd = cmask==np.median(cmask[ind_nd])
+            
+        # Attenuate mask by sapphire glass throughput
         cmask *= com_th
+        # Replace ND squares regions with wavelength-specific ND throughput
+        if nd_squares:
+            cmask[ind_nd] = com_nd
 
     # Place cmask in detector coords
     cmask = sci_to_det(cmask, detid)
@@ -648,6 +663,32 @@ def gen_coron_mask(apname, filter=None, image_mask=None, pupil_mask=None,
     Generate coronagraphic mask transmission images.
 
     Output images are in 'sci' or 'det' coordinates. Uses 'sci' by default.
+    
+    Parameters
+    ----------
+    apname : str
+        Aperture name, e.g., 'NRCA5_FULL_MASK335R'
+    filter : str
+        NIRCam filter name. This is used to apply the correct throughput
+        values for the coronagraphic mask region and ND squares.
+    image_mask : str
+        Name of the image mask to use. If None, then the default mask
+        for the given aperture is used.
+    pupil_mask : str
+        Name of the pupil mask to use. If None, then the default mask
+        for the given aperture is used.
+    oversample : float
+        Oversampling to perform during mask creation. Default is 1.
+        Will still output detector-sized image.
+    out_coords : str
+        Output coordinate system. Options are 'sci' or 'det'.
+
+    Keyword Args
+    ------------
+    nd_squares : bool
+        Include ND squares in the mask image?
+    mask_holder : bool
+        Include the coronagraphic mask holder in the mask image?
     """
 
     from .utils import siaf_nrc
@@ -665,7 +706,7 @@ def gen_coron_mask(apname, filter=None, image_mask=None, pupil_mask=None,
         elif '210R' in apname:
             mask = 'MASK210R'
         else:
-            raise ValueError("Coron mask can not be determined from {}".format(apname))
+            raise ValueError(f"Coron mask can not be determined from {apname}")
     else:
         mask = image_mask
     
@@ -680,7 +721,7 @@ def gen_coron_mask(apname, filter=None, image_mask=None, pupil_mask=None,
 
     # im_det  = build_mask_detid(detid, oversample=1, pupil=pupil)
     im_over = build_mask_detid(detid, ref_mask=mask, oversample=oversample, 
-                                pupil=pupil, filter=filter)
+                               pupil=pupil, filter=filter, **kwargs)
     # Convert to det coords and crop
     # im_det  = sci_to_det(im_det, detid)
     im_over = sci_to_det(im_over, detid)
@@ -694,10 +735,37 @@ def gen_coron_mask(apname, filter=None, image_mask=None, pupil_mask=None,
 
 def gen_coron_mask_ndonly(apname, **kwargs):
     
+    """ Generate a coronagraphic mask image with only the ND squares
+
+    Parameters
+    ----------
+    apname : str
+        Aperture name, e.g., 'NRCA5_FULL_MASK335R'
+
+    Keyword Args
+    ------------
+    filter : str
+        NIRCam filter name. This is used to apply the correct throughput
+        values for the coronagraphic mask region and ND squares.
+    image_mask : str
+        Name of the image mask to use. If None, then the default mask
+        for the given aperture is used.
+    pupil_mask : str
+        Name of the pupil mask to use. If None, then the default mask
+        for the given aperture is used.
+    oversample : float
+        Oversampling to perform during mask creation. Default is 1.
+        Will still output detector-sized image.
+    out_coords : str
+        Output coordinate system. Options are 'sci' or 'det'.
+    mask_holder : bool
+        Include the coronagraphic mask holder in the mask image?
+    """
+    
     from .utils import siaf_nrc
     from .coords import dist_image, rtheta_to_xy
 
-    cmask = gen_coron_mask(apname, **kwargs)
+    cmask = gen_coron_mask(apname, nd_squares=True, **kwargs)
 
     ap = siaf_nrc[apname]
     oversample = kwargs.get('oversample', 1)
