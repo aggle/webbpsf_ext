@@ -549,7 +549,8 @@ def replace_nans_griddata(image, method='cubic', in_place=True, **kwargs):
     image : ndarray
         2D image [ny,nx].
     method : str
-        Interpolation method to use for griddata. Default is 'cubic'.
+        Interpolation method to use for griddata. 
+        Options are 'nearest', 'linear', or 'cubic'. Default is 'cubic'.
     in_place : bool
         Replace NaNs in place. Default is True.
 
@@ -607,7 +608,8 @@ def replace_nans(image, mean_func=np.nanmean, in_place=False,
     use_griddata : bool
         Use griddata interpolation to fix NaNs. Default is True.
     grid_method : str
-        Interpolation method to use for griddata. Default is 'cubic'.
+        Interpolation method to use for griddata. 
+        Options are 'nearest', 'linear', or 'cubic'. Default is 'cubic'.
     x_stddev : float
         Standard deviation of Gaussian kernel for smoothing. Default is 2.
     use_fft : bool
@@ -715,8 +717,11 @@ def image_shift_with_nans(image, xshift, yshift, shift_method='fourier', interp=
         - 'fshift' : 'linear', 'cubic', and 'quintic' (default='linear')
         - `opencv` : 'linear', 'cubic', and 'lanczos' (default='lanczos')
 
+    use_griddata : bool
+        Use griddata interpolation to fix NaNs. Default is True.
     grid_method : str
-        Interpolation method over NaNs to use for griddata. Default is 'cubic'.
+        Interpolation method over NaNs to use for griddata. 
+        Options are 'nearest', 'linear', or 'cubic'. Default is 'cubic'.
     oversample : int
         Factor to oversample the image before sub-pixel shifting. Default is 1.
         An oversample factor of 2 will increase the image size by 2x in each dimension.
