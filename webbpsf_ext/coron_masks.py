@@ -642,12 +642,12 @@ def coron_detector(mask, module, channel=None):
             
     return detname
 
-def gen_coron_mask(apname, image_mask=None, pupil_mask=None, filter=None,
-                   oversample=1, **kwargs):
+def gen_coron_mask(apname, filter=None, image_mask=None, pupil_mask=None,
+                   oversample=1, out_coords='sci', **kwargs):
     """
     Generate coronagraphic mask transmission images.
 
-    Output images are in 'sci' coordinates.
+    Output images are in 'sci' or 'det' coordinates. Uses 'sci' by default.
     """
 
     from .utils import siaf_nrc
@@ -685,8 +685,12 @@ def gen_coron_mask(apname, image_mask=None, pupil_mask=None, filter=None,
     # im_det  = sci_to_det(im_det, detid)
     im_over = sci_to_det(im_over, detid)
     im_det = frebin(im_over, scale=1/oversample, total=False)
+    im_det = im_det[y0:y0+ypix, x0:x0+xpix]
 
-    return im_det[y0:y0+ypix, x0:x0+xpix]
+    if out_coords=='det':
+        return im_det
+    else:
+        return det_to_sci(im_det, detid)
 
 def gen_coron_mask_ndonly(apname, **kwargs):
     
