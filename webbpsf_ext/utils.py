@@ -7,20 +7,9 @@ import matplotlib.pyplot as plt
 import os, sys
 import six
 
-import webbpsf, poppy, pysiaf
+import poppy, pysiaf, stpsf
 
-try:
-    from webbpsf.webbpsf_core import get_siaf_with_caching
-except ImportError:
-    # In case user doesn't have the latest version of webbpsf installed
-    import functools
-    @functools.lru_cache
-    def get_siaf_with_caching(instrname):
-        """ Parsing and loading the SIAF information is particularly time consuming,
-        (can be >0.1 s per call, so multiple invokations can be a large overhead)
-        Therefore avoid unnecessarily reloading it by caching results.
-        This is a small speed optimization. """
-        return pysiaf.Siaf(instrname)
+from stpsf.stpsf_core import get_siaf_with_caching
 
 siaf_nrc = get_siaf_with_caching('NIRCam')
 siaf_nis = get_siaf_with_caching('NIRISS')
@@ -46,7 +35,7 @@ from tqdm.auto import trange, tqdm
 
 def check_fitsgz(opd_file, inst_str=None):
     """
-    WebbPSF FITS files can be either .fits or compressed .gz. 
+    STPSF FITS files can be either .fits or compressed .gz. 
     Search for .fits by default, then .fits.gz.
 
     Parameters
@@ -58,13 +47,13 @@ def check_fitsgz(opd_file, inst_str=None):
         Will look in instrument OPD directory. If set to None,
         then also checks `opd_file` for an instrument-specific
         string to determine if to look in instrument OPD directory,
-        otherwise assume file name is in webbpsf data base directory.
+        otherwise assume file name is in STPSF data base directory.
     """
-    from webbpsf.utils import get_webbpsf_data_path
+    from stpsf.utils import get_stpsf_data_path
 
     # Check if instrument name is in OPD file name
     # If so, then this is in instrument OPD directory
-    # Otherwise, exists in webbpsf_data top directory
+    # Otherwise, exists in stpsf_data top directory
 
     if inst_str is None:
         inst_names = ['NIRCam', 'NIRISS', 'NIRSpec', 'MIRI', 'FGS']
@@ -75,9 +64,9 @@ def check_fitsgz(opd_file, inst_str=None):
     # Get file directory
     if inst_str is None:
         # Location of JWST_OTE_OPD_*.fits.gz
-        opd_dir = get_webbpsf_data_path()
+        opd_dir = get_stpsf_data_path()
     else:
-        opd_dir = os.path.join(get_webbpsf_data_path(),inst_str,'OPD')
+        opd_dir = os.path.join(get_stpsf_data_path(),inst_str,'OPD')
     opd_fullpath = os.path.join(opd_dir, opd_file)
 
     # Check if file exists 

@@ -42,21 +42,21 @@ _log = logging.getLogger('webbpsf_ext')
 
 from .version import __version__
 
-# WebbPSF and Poppy stuff
-from .utils import check_fitsgz, webbpsf, poppy
-from webbpsf import MIRI as webbpsf_MIRI
-from webbpsf import NIRCam as webbpsf_NIRCam
-from webbpsf.opds import OTE_Linear_Model_WSS
+# STPSF and Poppy stuff
+from .utils import check_fitsgz, stpsf, poppy
+from stpsf import MIRI as stpsf_MIRI
+from stpsf import NIRCam as stpsf_NIRCam
+from stpsf.opds import OTE_Linear_Model_WSS
 
 # Program bar
 from tqdm.auto import trange, tqdm
 
 # NIRCam Subclass
-class NIRCam_ext(webbpsf_NIRCam):
+class NIRCam_ext(stpsf_NIRCam):
 
     """ NIRCam instrument PSF coefficients
     
-    Subclass of WebbPSF's NIRCam class for generating polynomial coefficients
+    Subclass of STPSF's NIRCam class for generating polynomial coefficients
     to cache and quickly generate PSFs for arbitrary spectral types as well
     as WFE variations due to field-dependent OPDs and telescope thermal drifts.
     """
@@ -80,7 +80,7 @@ class NIRCam_ext(webbpsf_NIRCam):
             Odd number place the PSF on the center of the pixel,
             whereas an even number centers it on the "crosshairs."
         oversample : int
-            Factor to oversample during WebbPSF calculations.
+            Factor to oversample during STPSF calculations.
             Default 2 for coronagraphy and 4 otherwise.
 
         Keyword Args
@@ -103,7 +103,7 @@ class NIRCam_ext(webbpsf_NIRCam):
             size will be considered to have 0 residual difference
         """
 
-        webbpsf_NIRCam.__init__(self)
+        stpsf_NIRCam.__init__(self)
 
         # Initialize script
         _init_inst(self, filter=filter, pupil_mask=pupil_mask, image_mask=image_mask,
@@ -116,7 +116,7 @@ class NIRCam_ext(webbpsf_NIRCam):
             pup_rot = None
         self.options['pupil_rotation'] = kwargs.get('pupil_rotation', pup_rot)
 
-        # By default, WebbPSF has wavelength limits depending on the channel
+        # By default, STPSF has wavelength limits depending on the channel
         # which can interfere with coefficient calculations, so set these to 
         # extreme low/high values across the board.
         self.SHORT_WAVELENGTH_MIN = self.LONG_WAVELENGTH_MIN = 1e-7
@@ -323,7 +323,7 @@ class NIRCam_ext(webbpsf_NIRCam):
         _check_list(value, [True, False], 'quick')
         self._quick = value
 
-    @webbpsf_NIRCam.pupil_mask.setter
+    @stpsf_NIRCam.pupil_mask.setter
     def pupil_mask(self, name):
 
         if name != self._pupil_mask:
@@ -361,7 +361,7 @@ class NIRCam_ext(webbpsf_NIRCam):
             _check_list(value, scaid_values, var_name='scaid')
 
 
-    @webbpsf_NIRCam.detector_position.setter
+    @stpsf_NIRCam.detector_position.setter
     def detector_position(self, position):
         # Remove limits for detector position
         # Values outside of [0,2047] will get transformed to the correct V2/V3 location
@@ -510,7 +510,7 @@ class NIRCam_ext(webbpsf_NIRCam):
             if 'bar_offset' is not None, it returns already that configured value in 
             self.options.
         """
-        from webbpsf.optics import NIRCam_BandLimitedCoron
+        from stpsf.optics import NIRCam_BandLimitedCoron
 
         if (self.is_coron) and ('WB' in self.image_mask):
             # Determine bar offset for Wedge masks either based on filter 
@@ -537,7 +537,7 @@ class NIRCam_ext(webbpsf_NIRCam):
                 mask = NIRCam_BandLimitedCoron(name=self.image_mask, module=self.module, kind='nircamwedge',
                                                bar_offset=bar_offset, auto_offset=auto_offset)
             except ValueError as e:
-                # If we failed, then webbpsf is showing a mismatch between bar type and filter
+                # If we failed, then stpsf is showing a mismatch between bar type and filter
                 # Try to auto-determine filter from aperture name
                 apname = self.siaf_ap.AperName
                 if ('_F1' in apname) or ('_F2' in apname) or ('_F3' in apname) or ('_F4' in apname):
@@ -576,7 +576,7 @@ class NIRCam_ext(webbpsf_NIRCam):
             then selects oversample pixel scale.
         """
         
-        from webbpsf.optics import NIRCam_BandLimitedCoron
+        from stpsf.optics import NIRCam_BandLimitedCoron
 
         shifts = {'shift_x': self.options.get('coron_shift_x', None),
                   'shift_y': self.options.get('coron_shift_y', None)}
@@ -613,7 +613,7 @@ class NIRCam_ext(webbpsf_NIRCam):
         calculating the transmission at the location of a source or for plotting
         the transmission across the mask. Returns the intensity transmission 
         (ie., photon loss), wich is the amplitude transmission squared (as supplied
-        by the WebbPSF `BandLimitedCoron` class and `nrc_mask_trans` function).
+        by the STPSF `BandLimitedCoron` class and `nrc_mask_trans` function).
 
         Parameters
         ----------
@@ -941,7 +941,7 @@ class NIRCam_ext(webbpsf_NIRCam):
         wfe_drift=None, coord_vals=None, coord_frame='tel', **kwargs):
         """ Compute a PSF
 
-        Slight modification of inherent WebbPSF `calc_psf` function. If add_distortion, fov_pixels,
+        Slight modification of inherent STPSF `calc_psf` function. If add_distortion, fov_pixels,
         and oversample are not specified, then we automatically use the associated attributes. 
         Also, add ability to directly specify wfe_drift and coordinate offset values in the same
         fashion as `calc_psf_from_coeff`.
@@ -1020,7 +1020,7 @@ class NIRCam_ext(webbpsf_NIRCam):
 
         # TODO: Add charge_diffusion_sigma keyword
         calc_psf_func = super().calc_psf
-        res = _calc_psf_webbpsf(self, calc_psf_func, add_distortion=add_distortion, 
+        res = _calc_psf_stpsf(self, calc_psf_func, add_distortion=add_distortion, 
                                 fov_pixels=fov_pixels, oversample=oversample, wfe_drift=wfe_drift, 
                                 coord_vals=coord_vals, coord_frame=coord_frame, **kwargs)
 
@@ -1064,7 +1064,7 @@ class NIRCam_ext(webbpsf_NIRCam):
             Option to also return coordinate values in desired frame 
             ('det', 'sci', 'tel', 'idl'). Output is then xvals, yvals, hdul_psfs.
         use_coeff : bool
-            If True, uses `calc_psf_from_coeff`, other WebbPSF's built-in `calc_psf`.
+            If True, uses `calc_psf_from_coeff`, other STPSF's built-in `calc_psf`.
         coron_rescale : bool
             Rescale off-axis coronagraphic PSF to better match analytic prediction
             when source overlaps coronagraphic occulting mask. Only valid for use_coeff=True.
@@ -1089,18 +1089,18 @@ class NIRCam_ext(webbpsf_NIRCam):
         yoff_asec : float or array-like
             Offsets in y-direction (in 'idl' coordinates).
         use_coeff : bool
-            If True, uses `calc_psf_from_coeff`, other WebbPSF's built-in `calc_psf`.
+            If True, uses `calc_psf_from_coeff`, other STPSF's built-in `calc_psf`.
         """
 
         res = _calc_psfs_sgd(self, xoff_asec, yoff_asec, use_coeff=use_coeff, **kwargs)
         return res
 
 # MIRI Subclass
-class MIRI_ext(webbpsf_MIRI):
+class MIRI_ext(stpsf_MIRI):
     
     """ MIRI instrument PSF coefficients
     
-    Subclass of WebbPSF's MIRI class for generating polynomial coefficients
+    Subclass of STPSF's MIRI class for generating polynomial coefficients
     to cache and quickly generate PSFs for arbitrary spectral types as well
     as WFE variations due to field-dependent OPDs and telescope thermal drifts.
 
@@ -1127,7 +1127,7 @@ class MIRI_ext(webbpsf_MIRI):
             Odd number place the PSF on the center of the pixel,
             whereas an even number centers it on the "crosshairs."
         oversample : int
-            Factor to oversample during WebbPSF calculations.
+            Factor to oversample during STPSF calculations.
             Default 2 for coronagraphy and 4 otherwise.
 
         Keyword Args
@@ -1146,7 +1146,7 @@ class MIRI_ext(webbpsf_MIRI):
             size will be considered to have 0 residual difference
         """
         
-        webbpsf_MIRI.__init__(self)
+        stpsf_MIRI.__init__(self)
         _init_inst(self, filter=filter, pupil_mask=pupil_mask, image_mask=image_mask,
                    fov_pix=fov_pix, oversample=oversample, **kwargs)
 
@@ -1301,7 +1301,7 @@ class MIRI_ext(webbpsf_MIRI):
     def siaf_ap(self, value):
         self._siaf_ap = value
 
-    @webbpsf_MIRI.detector_position.setter
+    @stpsf_MIRI.detector_position.setter
     def detector_position(self, position):
         try:
             x, y = map(float, position)
@@ -1675,7 +1675,7 @@ class MIRI_ext(webbpsf_MIRI):
         wfe_drift=None, coord_vals=None, coord_frame='tel', **kwargs):
         """ Compute a PSF
 
-        Slight modification of inherent WebbPSF `calc_psf` function. If add_distortion, fov_pixels,
+        Slight modification of inherent STPSF `calc_psf` function. If add_distortion, fov_pixels,
         and oversample are not specified, then we automatically use the associated attributes.
 
         Notes
@@ -1748,7 +1748,7 @@ class MIRI_ext(webbpsf_MIRI):
         # TODO: Add charge_diffusion_sigma keyword
 
         calc_psf_func = super().calc_psf
-        res = _calc_psf_webbpsf(self, calc_psf_func, add_distortion=add_distortion, 
+        res = _calc_psf_stpsf(self, calc_psf_func, add_distortion=add_distortion, 
                                 fov_pixels=fov_pixels, oversample=oversample, wfe_drift=wfe_drift, 
                                 coord_vals=coord_vals, coord_frame=coord_frame, **kwargs)
 
@@ -1796,7 +1796,7 @@ class MIRI_ext(webbpsf_MIRI):
             Option to also return coordinate values in desired frame 
             ('det', 'sci', 'tel', 'idl'). Output is then xvals, yvals, hdul_psfs.
         use_coeff : bool
-            If True, uses `calc_psf_from_coeff`, other WebbPSF's built-in `calc_psf`.
+            If True, uses `calc_psf_from_coeff`, other STPSF's built-in `calc_psf`.
         """
 
         res = _calc_psfs_grid(self, sp=sp, wfe_drift=wfe_drift, osamp=osamp, npsf_per_full_fov=npsf_per_full_fov,
@@ -1818,7 +1818,7 @@ class MIRI_ext(webbpsf_MIRI):
         yoff_asec : float or array-like
             Offsets in y-direction (in 'idl' coordinates).
         use_coeff : bool
-            If True, uses `calc_psf_from_coeff`, other WebbPSF's built-in `calc_psf`.
+            If True, uses `calc_psf_from_coeff`, other STPSF's built-in `calc_psf`.
         """
 
         res = _calc_psfs_sgd(self, xoff_asec, yoff_asec, use_coeff=use_coeff, **kwargs)
@@ -2254,7 +2254,7 @@ def _get_opd_info(self, opd=None, pupil=None, HDUL_to_OTELM=True):
         #header['WFEDRIFT'] = (self.wfe_drift, "WFE drift amount [nm]")
 
         if isinstance(pupil, six.string_types) and (not os.path.exists(pupil)):
-            wdir = webbpsf.utils.get_webbpsf_data_path()
+            wdir = stpsf.utils.get_stpsf_data_path()
             pupil = os.path.join(wdir, pupil)
 
         if isinstance(pupil, six.string_types):
@@ -2493,7 +2493,7 @@ def _update_mask_shifts(self):
 
 def _calc_psf_with_shifts(self, calc_psf_func, do_counts=None, **kwargs):
     """
-    Mask shifting in webbpsf does not have as high of a precision as source offsetting
+    Mask shifting in stpsf does not have as high of a precision as source offsetting
     for a given oversample setting.
 
     When performing mask shifting, coron_shift_x/y should be detector pixel integers. 
@@ -2505,14 +2505,14 @@ def _calc_psf_with_shifts(self, calc_psf_func, do_counts=None, **kwargs):
     Parameters
     ----------
     calc_psf_func : function
-        WebbPSF's built-in `calc_psf` or `calc_psf_from_coeff` function.
+        STPSF's built-in `calc_psf` or `calc_psf_from_coeff` function.
     do_counts : None or bool
         If None, then auto-chooses True or False depending on whether a source
         spectrum was specified. If True, then the PSF is scaled by the total
         number of counts collected by telescope. If False, then the PSF is
         normalized to 1 at infinity (times any pupil or image mask throughput losses).
         Defaults to True if `sp` is specified, and False if `source` is specified
-        or neither are specified. `source` is native to webbpsf.
+        or neither are specified. `source` is native to stpsf.
     """
 
     from .synphot_ext import Observation
@@ -2552,7 +2552,7 @@ def _calc_psf_with_shifts(self, calc_psf_func, do_counts=None, **kwargs):
     weights = binflux / binflux.sum()
     src = {'wavelengths': wave_um*1e-6, 'weights': weights}
 
-    # NIRCam grism pupils aren't recognized by WebbPSF
+    # NIRCam grism pupils aren't recognized by STPSF
     if (self.name.upper()=='NIRCAM') and self.is_grism:
         grism_temp = self.pupil_mask
         self.pupil_mask = None
@@ -2620,12 +2620,12 @@ def _calc_psf_with_shifts(self, calc_psf_func, do_counts=None, **kwargs):
 
     return hdul
 
-def _calc_psf_webbpsf(self, calc_psf_func, add_distortion=None, fov_pixels=None, oversample=None, 
+def _calc_psf_stpsf(self, calc_psf_func, add_distortion=None, fov_pixels=None, oversample=None, 
     wfe_drift=None, coord_vals=None, coord_frame='tel', **kwargs):
 
-    """ Compute a WebbPSF PSF
+    """ Compute a STPSF PSF
 
-    Slight modification of inherent WebbPSF `calc_psf` function. If add_distortion, fov_pixels,
+    Slight modification of inherent STPSF `calc_psf` function. If add_distortion, fov_pixels,
     and oversample are not specified, then we automatically use the associated attributes.
 
     Parameters
@@ -2722,7 +2722,7 @@ def _calc_psf_webbpsf(self, calc_psf_func, add_distortion=None, fov_pixels=None,
 
     # Get new sci coord
     if coord_vals is not None:
-        # Use webbpsf aperture to convert to detector coordinates
+        # Use stpsf aperture to convert to detector coordinates
         xorig, yorig = self.detector_position
         xnew, ynew = coord_vals
 
@@ -2741,7 +2741,7 @@ def _calc_psf_webbpsf(self, calc_psf_func, add_distortion=None, fov_pixels=None,
 
         # For coronagraphy, perform mask shift
         if self.is_coron:
-            # Mask shift relative to the webbpsf aperture reference location
+            # Mask shift relative to the stpsf aperture reference location
 
             # Include bar offsets
             if self.name == 'NIRCam':
@@ -2831,7 +2831,7 @@ def _calc_psf_webbpsf(self, calc_psf_func, add_distortion=None, fov_pixels=None,
 def _inst_copy(self):
     """ Return a copy of the current instrument class. """
 
-    # Change log levels to WARNING for webbpsf_ext, WebbPSF, and POPPY
+    # Change log levels to WARNING for webbpsf_ext, STPSF, and POPPY
     log_prev = conf.logging_level
     setup_logging('WARN', verbose=False)
 
@@ -2894,11 +2894,11 @@ def _inst_copy(self):
 def _wrap_coeff_for_mp(args):
     """
     Internal helper routine for parallelizing computations across multiple processors
-    for multiple WebbPSF monochromatic calculations.
+    for multiple STPSF monochromatic calculations.
 
     args => (inst,w,fov_pix,oversample)
     """
-    # Change log levels to WARNING for webbpsf_ext, WebbPSF, and POPPY
+    # Change log levels to WARNING for webbpsf_ext, STPSF, and POPPY
     log_prev = conf.logging_level
     setup_logging('WARN', verbose=False)
 
@@ -3006,7 +3006,7 @@ def _gen_psf_coeff(self, nproc=None, wfe_drift=0, force=False, save=True,
             if self.use_fov_pix_plus1:
                 osamp_half = self.oversample // 2
                 data = data[:, osamp_half:-osamp_half, osamp_half:-osamp_half]
-                hdr['FOVPIX'] = (self.fov_pix, 'WebbPSF pixel FoV')
+                hdr['FOVPIX'] = (self.fov_pix, 'STPSF pixel FoV')
 
             self.psf_coeff = data
             self.psf_coeff_header = hdr
@@ -3015,7 +3015,7 @@ def _gen_psf_coeff(self, nproc=None, wfe_drift=0, force=False, save=True,
     temp_str = 'and saving' if save else 'but not saving'
     _log.info(f'Generating {temp_str} PSF coefficient')
 
-    # Change log levels to WARNING for webbpsf_ext, WebbPSF, and POPPY
+    # Change log levels to WARNING for webbpsf_ext, STPSF, and POPPY
     log_prev = conf.logging_level
     setup_logging('WARN', verbose=False)
     
@@ -3072,7 +3072,7 @@ def _gen_psf_coeff(self, nproc=None, wfe_drift=0, force=False, save=True,
                     hdu_arr.append(res)
                 pool.close()
             if hdu_arr[0] is None:
-                raise RuntimeError('Returned None values. Issue with multiprocess or WebbPSF??')
+                raise RuntimeError('Returned None values. Issue with multiprocess or STPSF??')
         except Exception as e:
             setup_logging(log_prev, verbose=False)
             _log.error('Caught an exception during multiprocess.')
@@ -3086,7 +3086,7 @@ def _gen_psf_coeff(self, nproc=None, wfe_drift=0, force=False, save=True,
         for wa in tqdm(worker_arguments, desc='Monochromatic PSFs', leave=False):
             hdu = _wrap_coeff_for_mp(wa)
             if hdu is None:
-                raise RuntimeError('Returned None values. Issue with WebbPSF??')
+                raise RuntimeError('Returned None values. Issue with STPSF??')
             hdu_arr.append(hdu)
 
     del inst_copy, worker_arguments
@@ -3106,7 +3106,7 @@ def _gen_psf_coeff(self, nproc=None, wfe_drift=0, force=False, save=True,
 
     # Reset to original log levels
     setup_logging(log_prev, verbose=False)
-    time_string = 'Took {:.2f} seconds to generate WebbPSF images'.format(t1-t0)
+    time_string = 'Took {:.2f} seconds to generate STPSF images'.format(t1-t0)
     _log.info(time_string)
 
     # Extract image data from HDU array
@@ -3169,7 +3169,7 @@ def _gen_psf_coeff(self, nproc=None, wfe_drift=0, force=False, save=True,
     jitter_sigma = self.options.get('jitter_sigma', 0)
             
     # gen_psf_coeff() Keyword Values
-    hdr['FOVPIX'] = (fov_pix, 'WebbPSF pixel FoV')
+    hdr['FOVPIX'] = (fov_pix, 'STPSF pixel FoV')
     hdr['NPSF']   = (npsf, 'Number of wavelengths to calc')
     hdr['NDEG']   = (ndeg, 'Polynomial fit degree')
     hdr['WAVE1']  = (w1, 'First wavelength in calc')
@@ -3235,7 +3235,7 @@ def _gen_psf_coeff(self, nproc=None, wfe_drift=0, force=False, save=True,
         if self.use_fov_pix_plus1:
             osamp_half = self.oversample // 2
             coeff_all = coeff_all[:, osamp_half:-osamp_half, osamp_half:-osamp_half]
-            hdr['FOVPIX'] = (self.fov_pix, 'WebbPSF pixel FoV')
+            hdr['FOVPIX'] = (self.fov_pix, 'STPSF pixel FoV')
             
         self.psf_coeff = coeff_all
         self.psf_coeff_header = hdr
@@ -3558,7 +3558,7 @@ def _gen_wfefield_coeff(self, force=False, save=True, return_results=False, retu
             zfile = 'si_zernikes_coron_wfe.fits'
 
     # Read in measured SI Zernike data
-    data_dir = self._WebbPSF_basepath
+    data_dir = self._STPSF_basepath
     zernike_file = os.path.join(data_dir, zfile)
     ztable_full = Table.read(zernike_file)
 
@@ -3585,7 +3585,7 @@ def _gen_wfefield_coeff(self, force=False, save=True, return_results=False, retu
         v3_all = np.append(v3_all[igood], [v3_min, v3_min, v3_max, v3_max])
         npos = len(v2_all)
 
-        # WebbPSF includes some strict NIRCam V2/V3 limits for OTE field position
+        # STPSF includes some strict NIRCam V2/V3 limits for OTE field position
         #   V2: -2.6 to 2.6
         #   V3: -9.4 to -6.2
         # Make sure we don't violate those limits
@@ -4791,7 +4791,7 @@ def _calc_psfs_grid(self, sp=None, wfe_drift=0, osamp=1, npsf_per_full_fov=15,
         ('det', 'sci', 'tel', 'idl').
         Output is then xvals, yvals, hdul_psfs.
     use_coeff : bool
-        If True, uses `calc_psf_from_coeff`, other WebbPSF's built-in `calc_psf`.
+        If True, uses `calc_psf_from_coeff`, other STPSF's built-in `calc_psf`.
     """
 
     # Observation aperture
@@ -5136,10 +5136,10 @@ def _nrc_coron_psf_sums(self, coord_vals, coord_frame, siaf_ap=None, return_max=
         return None
         
     if return_max:
-        psf_max = avals * psf_off_max + bvals * psf_cen_max
+        psf_max = (avals * psf_off_max) + (bvals * psf_cen_max)
         return psf_max
     else:
-        psf_sum = avals * psf_off_sum + bvals * psf_cen_sum
+        psf_sum = (avals * psf_off_sum) + (bvals * psf_cen_sum)
         return psf_sum
 
 
@@ -5152,13 +5152,20 @@ def _nrc_coron_rescale(self, res, coord_vals, coord_frame, siaf_ap=None, sp=None
     Parameters
     ----------
     self : webbpsf_ext object
-        WebbPSF extension object (e.g., `webbpsf_ext.NIRCam_ext`)
+        webbpsf_ext object (e.g., `webbpsf_ext.NIRCam_ext`)
     res : fits.HDUList or ndarray
         PSF image(s) to rescale
     coord_vals : tuple
         Tuple of (x,y) coordinates in arcsec relative to aperture center
     coord_frame : str
         Frame of input coordinates ('tel', 'idl', 'sci', 'det')
+    
+    Keyword Parameters
+    ==================
+    siaf_ap : pysiaf aperture
+        Supply SIAF aperture directly, otherwise uses self.siaf_ap
+    sp : synphot spectrum
+        Normalized spectrum to determine observed counts
     """
 
     from .synphot_ext import Observation

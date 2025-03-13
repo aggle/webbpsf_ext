@@ -52,14 +52,14 @@ def bp_igood(bp, min_trans=0.001, fext=0.05):
 
 def miri_filter(filter, **kwargs):
     """
-    Read in MIRI filters from webbpsf and scale to rough peak 
+    Read in MIRI filters from stpsf and scale to rough peak 
     transmission throughput as indicated on JDOCS.
     """
 
-    import webbpsf
+    from stpsf.utils import get_stpsf_data_path
     
     filter = filter.upper()
-    filt_dir = Path(webbpsf.utils.get_webbpsf_data_path()) / 'MIRI/filters/'
+    filt_dir = Path(get_stpsf_data_path()) / 'MIRI/filters/'
     fname = f'{filter}_throughput.fits'
 
     bp_name = filter
@@ -776,7 +776,7 @@ def nircam_filter(filter, pupil=None, mask=None, module=None, sca=None, ND_acq=F
         # Sapphire mask transmission values for coronagraphic substrate
         # Did we explicitly set the ND acquisition square?
         #   This is a special case and doesn't necessarily need to be set.
-        #   WebbPSF has a provision to include ND filters in the field, but we include
+        #   STPSF has a provision to include ND filters in the field, but we include
         #   this option if the user doesn't want to figure out offset positions.
         th_coron_sub = nircam_com_th(wave_out=bp.wave/1e4, ND_acq=ND_acq)
         th_new = th_coron_sub * bp.throughput

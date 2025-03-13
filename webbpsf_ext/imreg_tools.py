@@ -1347,7 +1347,7 @@ def subtract_psf(image, psf, osamp=1, bpmask=None, rin=None, rout=None,
     psf_corr_over: ndarray
         Oversampled PSF correction image. If provided, then this
         image is multiplied with the PSF after diffusion. These are
-        empirical corrections to the WebbPSF model to better match
+        empirical corrections to the STPSF model to better match
         the observed PSF.
     kipc: ndarray
         3x3 array of IPC kernel values. If None, then no IPC is applied.

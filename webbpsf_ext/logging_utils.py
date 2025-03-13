@@ -1,6 +1,7 @@
 import sys
 
-import webbpsf, poppy
+import poppy
+import stpsf
 from . import conf
 
 import logging
@@ -29,7 +30,7 @@ def restart_logging(verbose=True):
     
     Restart logging using the same settings as those currently
     stored in conf.logging_level. This function was shamelessly
-    stolen from WebbPSF utils.py.
+    stolen from STPSF utils.py.
 
     Parameters
     ----------
@@ -39,7 +40,7 @@ def restart_logging(verbose=True):
     """
 
     level = str(conf.logging_level).upper()
-    lognames = ['webbpsf_ext', 'webbpsf', 'poppy']
+    lognames = ['webbpsf_ext', 'stpsf', 'poppy']
 
     root_logger = logging.getLogger()
     root_logger.handlers = []
@@ -99,7 +100,7 @@ def setup_logging(level='INFO', filename=None, verbose=True):
     """Setup Logging
     
     Allows selection of logging detail and output locations
-    (screen and/or file). Shamelessly stolen from WebbPSF utils.py.
+    (screen and/or file). Shamelessly stolen from STPSF utils.py.
 
     This is a convenience wrapper to Python's built-in logging package.
     By default, this sets up log messages to be written to the screen, 
@@ -147,4 +148,4 @@ def setup_logging(level='INFO', filename=None, verbose=True):
     conf.logging_filename = filename
     restart_logging(verbose=verbose)
 
-    # webbpsf.setup_logging(level=level)
+    # stpsf.setup_logging(level=level)

@@ -16,11 +16,11 @@ def normalize_psf(arr, trim=3, max=False):
 
     return arr / norm_func(arr)
 
-def test_monochromatic(nrc_f335m_wext, nrc_f335m_webbpsf):
+def test_monochromatic(nrc_f335m_wext, nrc_f335m_stpsf):
     """Test that webbpsf_ext and webbpsf give the same results for monochromatic PSFs"""
 
     nrc1 = nrc_f335m_wext
-    nrc2 = nrc_f335m_webbpsf
+    nrc2 = nrc_f335m_stpsf
 
     psf1 = nrc1.calc_psf(source=sp_vega, monochromatic=3.35e-6)
     psf2 = nrc2.calc_psf(source=sp_vega, monochromatic=3.35e-6, 
@@ -48,10 +48,10 @@ def test_load_psf_coeffs(filter, nrc_f335m_wext):
 @pytest.mark.parametrize("xsci, ysci", [(1771,278), (1474,573), (1174,870), (264,1768)])
 def test_field_dependent_psfs(xsci, ysci, nrc_f335m_coeffs_cached):
 
-    # WebbPSF PSF at 'sci' coordinates
+    # STPSF PSF at 'sci' coordinates
     nrc1 = nrc_f335m_coeffs_cached
 
-    # WebbPSF Extended PSF at 'sci' coordinates, native and using coefficients
+    # STPSF Extended PSF at 'sci' coordinates, native and using coefficients
     psf1 = nrc1.calc_psf(sp=sp_vega, return_oversample=False,
                          coord_vals=(xsci, ysci), coord_frame='sci')
     psf2 = nrc1.calc_psf_from_coeff(sp=sp_vega, return_oversample=False,
@@ -69,10 +69,10 @@ def test_field_dependent_psfs(xsci, ysci, nrc_f335m_coeffs_cached):
 
 
 @pytest.mark.parametrize("filter", ['F212N', 'F335M', 'F356W'])
-def test_psfs_cached(nrc_f335m_webbpsf, nrc_f335m_wext, filter):
+def test_psfs_cached(nrc_f335m_stpsf, nrc_f335m_wext, filter):
 
-    # Create webbpsf and webbpsf_ext objects
-    nrc0 = nrc_f335m_webbpsf
+    # Create stpsf and webbpsf_ext objects
+    nrc0 = nrc_f335m_stpsf
     nrc1 = nrc_f335m_wext
 
     # Set filter

@@ -20,7 +20,7 @@ _wave, _wave_str = synphot.generate_wavelengths(
 stsyn.conf.waveset = _wave_str
 stsyn.conf.waveset_array = _wave.to_value('angstrom').tolist()
 # JWST 25m^2 collecting area
-# Flux loss from masks and occulters are taken into account in WebbPSF
+# Flux loss from masks and occulters are taken into account in STPSF
 stsyn.conf.area = 25.78e4
 
 ##########################################################

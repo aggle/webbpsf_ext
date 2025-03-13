@@ -666,7 +666,7 @@ def BOSZ_2024_spectrum(Teff, log_g, metallicity, res=2000,
 def stellar_spectrum(sptype, *renorm_args, **kwargs):
     """Stellar spectrum
 
-    Similar to specFromSpectralType() in WebbPSF/Poppy, this function uses
+    Similar to specFromSpectralType() in STPSF/Poppy, this function uses
     a dictionary of fiducial values to determine an appropriate spectral model.
     If the input spectral type is not found, this function interpolates the
     effective temperature, metallicity, and log g values .
@@ -700,7 +700,7 @@ def stellar_spectrum(sptype, *renorm_args, **kwargs):
         Catalog name, including 'bosz', 'ck04models', and 'phoenix'.
         Default is 'bosz', which comes from :func:`BOSZ_spectrum`.
     Teff : float
-        Effective temperature ranging from 3500K to 30000K.
+        Effective temperature ranging from 2800K to 35000K.
     metallicity : float
         Metallicity [Fe/H] value ranging from -2.5 to 0.5.
     log_g : float
@@ -716,6 +716,7 @@ def stellar_spectrum(sptype, *renorm_args, **kwargs):
 
     def call_bosz(v0, v1, v2, use_2024=True, **kwargs):
 
+        # Use earlier version if Teff > 16000
         if v0 > 16000 and use_2024:
             use_2024=False
 

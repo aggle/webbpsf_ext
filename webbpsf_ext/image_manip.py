@@ -1897,7 +1897,7 @@ def distort_image(hdulist_or_filename, ext=0, to_frame='sci', fill_value=0,
     Parameters
     ----------
     hdulist_or_filename : str or HDUList
-        A PSF from WebbPSF, either as an HDUlist object or as a filename
+        A PSF from STPSF, either as an HDUlist object or as a filename
     ext : int
         Extension of HDUList to perform distortion on.
     fill_value : float or None

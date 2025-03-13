@@ -12,7 +12,7 @@ from .bandpasses import nircam_com_th, nircam_com_nd
 # The following won't work on readthedocs compilation
 on_rtd = os.environ.get('READTHEDOCS') == 'True'
 if not on_rtd:
-    # Grab WebbPSF assumed pixel scales
+    # Grab STPSF assumed pixel scales
     log_prev = conf.logging_level
     setup_logging('WARN', verbose=False)
     nc_temp = NIRCam_ext()
@@ -98,7 +98,7 @@ def coron_trans(name, module='A', pixelscale=None, npix=None, oversample=1,
     Returns the intensity transmission (square of the amplitude transmission). 
     """
 
-    from webbpsf.optics import NIRCam_BandLimitedCoron
+    from stpsf.optics import NIRCam_BandLimitedCoron
 
     shifts = {'shift_x': shift_x, 'shift_y': shift_y}
 
@@ -176,16 +176,23 @@ def build_mask(module='A', pixscale=None, filter=None, nd_squares=True):
         bandpass = nircam_filter(filter)
         w_um = bandpass.avgwave().to_value('um')
         com_th = nircam_com_th(wave_out=w_um)
-        com_nd = 10**(-1*nircam_com_nd(wave_out=w_um))
 
-        ind_nd = (im_out<0.0011) & (im_out>0.0009)
-        im_out[ind_nd] = com_nd
+        # Get ND square locations
+        if nd_squares:
+            ndval = 0.001
+            ind_nd = (im_out<ndval*1.01) & (im_out>ndval*0.99)
+            ind_nd = im_out==np.median(im_out[ind_nd])
+
+        # Attenuate mask by sapphire glass throughput
         im_out *= com_th
+        # Replace ND squares regions with wavelength-specific ND throughput
+        if nd_squares:
+            im_out[ind_nd] = nircam_com_th(wave_out=w_um, ND_acq=True)
 
     return im_out
 
 def build_mask_detid(detid, oversample=1, ref_mask=None, pupil=None, filter=None, 
-    nd_squares=True, mask_holder=True):
+    nd_squares=True, mask_holder=True, com_th_unity=False):
     """Create mask image for a given detector
 
     Return a full coronagraphic mask image as seen by a given SCA.
@@ -210,6 +217,12 @@ def build_mask_detid(detid, oversample=1, ref_mask=None, pupil=None, filter=None
         Include ND squares in the mask image?
     mask_holder : bool
         Include the coronagraphic mask holder in the mask image?
+    com_th_unity : bool
+        Set the throughput of the coronagraphic mask substrate to unity.
+        The clear aperture will then be greater than 1.0 due to the lack
+        of the sapphire glass substrate. Useful for throughput corrections
+        of clear aperture regions not taken into account by the JWST pipeline.
+        Only works if filter is not None.
     """
 
     from .image_manip import pad_or_cut_to_size
@@ -298,7 +311,6 @@ def build_mask_detid(detid, oversample=1, ref_mask=None, pupil=None, filter=None
         bandpass = nircam_filter(filter)
         w_um = bandpass.avgwave().to_value('um')
         com_th = nircam_com_th(wave_out=w_um)
-        com_nd = 10**(-1*nircam_com_nd(wave_out=w_um))
 
         # Get ND square locations
         if nd_squares:
@@ -310,7 +322,7 @@ def build_mask_detid(detid, oversample=1, ref_mask=None, pupil=None, filter=None
         cmask *= com_th
         # Replace ND squares regions with wavelength-specific ND throughput
         if nd_squares:
-            cmask[ind_nd] = com_nd
+            cmask[ind_nd] = nircam_com_th(wave_out=w_um, ND_acq=True)
 
     # Place cmask in detector coords
     cmask = sci_to_det(cmask, detid)
@@ -502,6 +514,10 @@ def build_mask_detid(detid, oversample=1, ref_mask=None, pupil=None, filter=None
     # Convert back to 'sci' orientation
     cmask = det_to_sci(cmask, detid)
 
+    if com_th_unity and filter is not None:
+        cmask /= com_th
+
+
     return cmask
 
 
@@ -689,6 +705,12 @@ def gen_coron_mask(apname, filter=None, image_mask=None, pupil_mask=None,
         Include ND squares in the mask image?
     mask_holder : bool
         Include the coronagraphic mask holder in the mask image?
+    com_th_unity : bool
+        Set the throughput of the coronagraphic mask substrate to unity.
+        The clear aperture will then be greater than 1.0 due to the lack
+        of the sapphire glass substrate. Useful for throughput corrections
+        of clear aperture regions not taken into account by the JWST pipeline.
+        Only works if filter is not None.
     """
 
     from .utils import siaf_nrc
@@ -760,6 +782,12 @@ def gen_coron_mask_ndonly(apname, **kwargs):
         Output coordinate system. Options are 'sci' or 'det'.
     mask_holder : bool
         Include the coronagraphic mask holder in the mask image?
+    com_th_unity : bool
+        Set the throughput of the coronagraphic mask substrate to unity.
+        The clear aperture will then be greater than 1.0 due to the lack
+        of the sapphire glass substrate. Useful for throughput corrections
+        of clear aperture regions not taken into account by the JWST pipeline.
+        Only works if filter is not None.
     """
     
     from .utils import siaf_nrc

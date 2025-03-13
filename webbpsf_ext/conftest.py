@@ -11,7 +11,7 @@ except ImportError:
 
 import os
 import pytest
-import webbpsf, webbpsf_ext
+import stpsf, webbpsf_ext
 
 from webbpsf_ext.logging_utils import setup_logging
 setup_logging(level='ERROR', verbose=False)
@@ -25,7 +25,7 @@ def pytest_configure():
     PYTEST_HEADER_MODULES.pop('Pandas', None)
     PYTEST_HEADER_MODULES.pop('h5py', None)
     PYTEST_HEADER_MODULES['astropy'] = 'astropy'
-    PYTEST_HEADER_MODULES['webbpsf'] = 'webbpsf'
+    PYTEST_HEADER_MODULES['stpsf'] = 'stpsf'
     PYTEST_HEADER_MODULES['pysiaf'] = 'pysiaf'
     TESTED_VERSIONS['webbpsf_ext'] = version
 
@@ -34,11 +34,11 @@ def pytest_configure():
 # Direct Imaging Fixtures
 
 @pytest.fixture(scope='session')
-def nrc_f335m_webbpsf():
+def nrc_f335m_stpsf():
     """
-    Return NIRCam LW from webbpsf
+    Return NIRCam LW from stpsf
     """
-    nrc = webbpsf.NIRCam()
+    nrc = stpsf.NIRCam()
     nrc.filter = 'F335M'
 
     nrc.options['fov_pixels'] = 33

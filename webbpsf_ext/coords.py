@@ -60,7 +60,7 @@ def xy_to_rtheta(x, y):
     """Convert (x,y) to (r,theta)
     
     Input (x,y) coordinates and return polar cooridnates that use
-    the WebbPSF convention (theta is CCW of +Y)
+    the STPSF convention (theta is CCW of +Y)
     
     Input can either be a single value or numpy array.
 
@@ -86,7 +86,7 @@ def xy_to_rtheta(x, y):
 def rtheta_to_xy(r, theta):
     """Convert (r,theta) to (x,y)
     
-    Input polar cooridnates (WebbPSF convention) and return Carteesian coords
+    Input polar cooridnates (STPSF convention) and return Carteesian coords
     in the imaging coordinate system (as opposed to RA/DEC)
 
     Input can either be a single value or numpy array.
@@ -239,7 +239,7 @@ def NIRCam_V2V3_limits(module, channel='LW', pupil=None, rederive=False, return_
             v2_min, v2_max = v2v3_limits[name]['V2']
             v3_min, v3_max = v2v3_limits[name]['V3']
     else: # Or use preset coordinates
-        # WebbPSF includes some strict NIRCam V2/V3 limits
+        # STPSF includes some strict NIRCam V2/V3 limits
         #   V2: -2.6 to 2.6
         #   V3: -9.4 to -6.2
         # Make sure there is 

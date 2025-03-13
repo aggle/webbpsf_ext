@@ -38,11 +38,11 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
           
-    - name: WebbPSF Data
-      run: | # Get WebbPSF data files (just a subset of the full dataset!) and set up environment variable
-        wget https://stsci.box.com/shared/static/0ojjfg3cieqdpd18vl1bjnpe63r82dx8.gz -O /tmp/minimal-webbpsf-data.tar.gz
-        tar -xzvf /tmp/minimal-webbpsf-data.tar.gz
-        echo "WEBBPSF_PATH=${{github.workspace}}/webbpsf-data" >> $GITHUB_ENV
+    - name: STPSF Data
+      run: | # Get STPSF data files (just a subset of the full dataset!) and set up environment variable
+        wget https://arizona.box.com/shared/static/url7q77887o933tgc4ten2fa2e3q6sna.gz -O /tmp/minimal-stpsf-data.tar.gz
+        tar -xzvf /tmp/minimal-stpsf-data.tar.gz
+        echo "STPSF_PATH=${{github.workspace}}/stpsf-data" >> $GITHUB_ENV
 
     - name: Get CDBS Data
       run: | # Get subset of CDBS data files and set up environment variable
