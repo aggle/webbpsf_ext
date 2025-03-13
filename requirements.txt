@@ -5,6 +5,7 @@ numpy
 synphot
 stsynphot
 scipy>=1.11.4
+scikit-image
 tqdm
 pysiaf
 poppy

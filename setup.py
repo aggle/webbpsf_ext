@@ -82,6 +82,7 @@ install_requires = [
     'poppy>=1.1.0',
     'stpsf>=2.0.0',
     'pysiaf>=0.22.0',
+    'scikit-image>=0.20.0',
 ]
 
 setup_requirements = ['pytest-runner', ]
