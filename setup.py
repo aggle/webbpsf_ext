@@ -78,11 +78,12 @@ if sys.argv[-1] == 'test':
 install_requires = [
     'matplotlib>=3.7.1',
     'tqdm>4',
+    'scikit-image>=0.20.0',
     'synphot>=1.2.1',
     'poppy>=1.1.0',
     'stpsf>=2.0.0',
-    'pysiaf>=0.22.0',
-    'scikit-image>=0.20.0',
+    'pysiaf>=0.24.1',
+    'stsynphot',
 ]
 
 setup_requirements = ['pytest-runner', ]
