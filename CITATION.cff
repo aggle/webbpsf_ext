@@ -6,5 +6,6 @@ authors:
     orcid: "https://orcid.org/0000-0002-0834-6140"
 title: "WebbPSF Extensions"
 version: v2.0.0
-date-released: 2024-09-27
+doi: 10.5281/zenodo.15033130
+date-released: 2025-03-15
 url: "https://github.com/JarronL/webbpsf_ext"

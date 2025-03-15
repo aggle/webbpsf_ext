@@ -3,6 +3,7 @@
 ## Extending JWST PSF generation
 
 [![PyPI Version](https://img.shields.io/pypi/v/webbpsf_ext.svg)](https://pypi.python.org/pypi/webbpsf_ext)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15033130.svg)](https://doi.org/10.5281/zenodo.15033130)
 
 *Authors*: Jarron Leisenring (U. of Arizona, Steward Observatory)
 
