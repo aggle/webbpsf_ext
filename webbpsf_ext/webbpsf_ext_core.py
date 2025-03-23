@@ -2697,7 +2697,7 @@ def _calc_psf_stpsf(self, calc_psf_func, add_distortion=None, fov_pixels=None, o
                 kwargs['detector_oversample'] = self.oversample
                 oversample = 4
         elif oversample<4: # no changes, but send informational message
-            _log.warning('oversample={oversample} may produce imprecise results for coronagraphy. Suggest >=4.')
+            _log.warning(f'oversample={oversample} may produce imprecise results for coronagraphy. Suggest >=4.')
     else:
         oversample = self.oversample if oversample is None else oversample
 
