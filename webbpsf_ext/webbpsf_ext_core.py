@@ -4599,7 +4599,9 @@ def _coeff_mod_wfe_mask(self, coord_vals, coord_frame, siaf_ap=None):
 
     # Information for bar offsetting (in arcsec)
     siaf_ap = self.siaf_ap if siaf_ap is None else siaf_ap
-    if (siaf_ap.AperName != self.siaf_ap.AperName):
+    if self.name != 'NIRCam':
+        bar_offset = 0
+    elif (siaf_ap.AperName != self.siaf_ap.AperName):
         apname = siaf_ap.AperName
         if ('_F1' in apname) or ('_F2' in apname) or ('_F3' in apname) or ('_F4' in apname):
             filter = apname.split('_')[-1]
@@ -5000,7 +5002,9 @@ def _transmission_map(self, coord_vals, coord_frame, siaf_ap=None):
     # Information for bar offsetting (in arcsec)
     # relative to center of mask
     siaf_ap = self.siaf_ap if siaf_ap is None else siaf_ap
-    if (siaf_ap.AperName != self.siaf_ap.AperName):
+    if self.name != 'NIRCam':
+        bar_offset = 0
+    elif (siaf_ap.AperName != self.siaf_ap.AperName):
         apname = siaf_ap.AperName
         if ('_F1' in apname) or ('_F2' in apname) or ('_F3' in apname) or ('_F4' in apname):
             filter = apname.split('_')[-1]
